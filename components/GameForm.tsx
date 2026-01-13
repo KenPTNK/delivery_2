@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/src/supabaseClient";
-import { useRouter } from "next/navigation";
+
+type GameFormData = {
+  name: string;
+  genre: string;
+  platform: string;
+  year: number;
+  rating: number;
+};
 
 type GameFormProps = {
   mode?: "add" | "update";
-  initialData?: {
-    name: string;
-    genre: string;
-    platform: string;
-    year: number;
-    rating: number;
-  };
-  onSubmit?: (data: any) => void;
+  initialData?: GameFormData;
+  onSubmit: (data: GameFormData) => Promise<void> | void;
 };
 
 export default function GameForm({
@@ -21,15 +21,13 @@ export default function GameForm({
   initialData,
   onSubmit,
 }: GameFormProps) {
-  const router = useRouter();
   const [name, setName] = useState(initialData?.name ?? "");
   const [genre, setGenre] = useState(initialData?.genre ?? "");
   const [platform, setPlatform] = useState(initialData?.platform ?? "");
-  const [year, setReleaseYear] = useState(
-    initialData?.year ?? ""
-  );
-  const [rating, setRating] = useState(initialData?.rating ?? "");
+  const [year, setYear] = useState<number | "">(initialData?.year ?? "");
+  const [rating, setRating] = useState<number | "">(initialData?.rating ?? "");
   const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,19 +37,18 @@ export default function GameForm({
       return;
     }
 
-    const { error } = await supabase
-      .from("games")
-      .insert(
-        { name, genre, platform, year, rating }
-      )
-    
-    if (error) {
-      setFormError("Error saving game. Please try again.");
-      console.log("Supabase insert error:", error);
-    }
+    setFormError(null);
+    setSubmitting(true);
 
-    alert("Game saved successfully!");
-    router.push("/game");
+    await onSubmit({
+      name,
+      genre,
+      platform,
+      year: Number(year),
+      rating: Number(rating),
+    });
+
+    setSubmitting(false);
   };
 
   return (
@@ -60,8 +57,11 @@ export default function GameForm({
         {mode === "add" ? "Create Game" : "Update Game"}
       </h2>
 
+      {formError && (
+        <p className="text-red-500 text-sm mb-3">{formError}</p>
+      )}
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {/* Name */}
         <input
           type="text"
           placeholder="Game name"
@@ -71,7 +71,6 @@ export default function GameForm({
           required
         />
 
-        {/* Genre */}
         <input
           type="text"
           placeholder="Genre"
@@ -81,7 +80,6 @@ export default function GameForm({
           required
         />
 
-        {/* Platform */}
         <input
           type="text"
           placeholder="Platform"
@@ -91,22 +89,20 @@ export default function GameForm({
           required
         />
 
-        {/* Release Year */}
         <input
           type="number"
           placeholder="Release year"
           value={year}
-          onChange={(e) => setReleaseYear(Number(e.target.value))}
+          onChange={(e) => setYear(Number(e.target.value))}
           className="p-3 border rounded"
           min={1970}
           max={2100}
           required
         />
 
-        {/* Rating */}
         <input
           type="number"
-          placeholder="Rating (0 – 10)"
+          placeholder="Rating (0–10)"
           value={rating}
           onChange={(e) => setRating(Number(e.target.value))}
           className="p-3 border rounded"
@@ -117,13 +113,18 @@ export default function GameForm({
 
         <button
           type="submit"
-          className={`mt-2 py-2 rounded text-white ${
+          disabled={submitting}
+          className={`py-2 rounded text-white ${
             mode === "add"
               ? "bg-green-600 hover:bg-green-700"
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
-          {mode === "add" ? "Create Game" : "Update Game"}
+          {submitting
+            ? "Saving..."
+            : mode === "add"
+            ? "Create Game"
+            : "Update Game"}
         </button>
       </form>
     </div>

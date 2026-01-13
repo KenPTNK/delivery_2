@@ -45,7 +45,19 @@ export default function CreateGamePage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <GameForm mode="add" />
+      <GameForm
+        mode="add"
+        onSubmit={async (data) => {
+          const { error } = await supabase
+            .from("games")
+            .insert(data);
+          if (error) {
+            alert("Failed to create game");
+            return;
+          }
+          router.push("/game");
+        }}
+      />
     </div>
   );
 }

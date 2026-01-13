@@ -24,7 +24,7 @@ export default function EditGamePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔐 Check auth
+  /* ───────────────────────── AUTH CHECK ───────────────────────── */
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
@@ -35,7 +35,7 @@ export default function EditGamePage() {
     });
   }, [router]);
 
-  // 🎮 Fetch game data
+  /* ─────────────────────── FETCH GAME ─────────────────────── */
   useEffect(() => {
     if (!id) return;
 
@@ -43,10 +43,10 @@ export default function EditGamePage() {
       const { data, error } = await supabase
         .from("games")
         .select("*")
-        .eq("id", id)
+        .eq("id", Number(id))
         .single();
 
-      if (error) {
+      if (error || !data) {
         console.error(error);
         setError("Game not found");
         setLoading(false);
@@ -60,7 +60,7 @@ export default function EditGamePage() {
     fetchGame();
   }, [id]);
 
-  // 💾 Update handler
+  /* ─────────────────────── UPDATE HANDLER ─────────────────────── */
   const handleUpdate = async (updatedGame: {
     name: string;
     genre: string;
@@ -70,14 +70,8 @@ export default function EditGamePage() {
   }) => {
     const { error } = await supabase
       .from("games")
-      .update({
-        name: updatedGame.name,
-        genre: updatedGame.genre,
-        platform: updatedGame.platform,
-        year: updatedGame.year, // ✅ aligned
-        rating: updatedGame.rating,
-      })
-      .eq("id", id);
+      .update(updatedGame)
+      .eq("id", Number(id));
 
     if (error) {
       console.error(error);
@@ -88,6 +82,7 @@ export default function EditGamePage() {
     router.push("/game");
   };
 
+  /* ───────────────────────── UI STATES ───────────────────────── */
   if (loading) {
     return <p className="mt-10 text-center">Loading game...</p>;
   }
@@ -100,6 +95,7 @@ export default function EditGamePage() {
     );
   }
 
+  /* ───────────────────────── RENDER ───────────────────────── */
   return (
     <div className="mx-auto max-w-4xl p-6">
       <GameForm
