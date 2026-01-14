@@ -49,14 +49,14 @@ export default function Navbar() {
             onClick={handleSignOut}
             className="px-4 py-2 rounded bg-red-600 hover:bg-red-700"
           >
-            Sign out
+            Sign Out
           </button>
         ) : (
           <Link
-            href="/auth"
+            href="/signin"
             className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700"
           >
-            Signup
+            Sign In
           </Link>
         )}
       </div>

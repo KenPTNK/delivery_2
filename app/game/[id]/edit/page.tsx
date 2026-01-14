@@ -28,7 +28,7 @@ export default function EditGamePage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
-        router.replace("/auth");
+        router.replace("/signin");
         return;
       }
       setSession(data.session);

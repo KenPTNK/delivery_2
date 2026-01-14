@@ -19,7 +19,7 @@ export default function CreateGamePage() {
 
       // Redirect if not signed in
       if (!data.session) {
-        router.replace("/auth");
+        router.replace("/signin");
       }
     });
 
